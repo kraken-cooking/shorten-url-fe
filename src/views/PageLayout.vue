@@ -5,75 +5,52 @@ export default {
 </script>
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <h1>UShortLink</h1>
+    <p>Simplify your links, amplify your reach</p>
   </header>
-
-  <!-- Main Content -->
   <div class="content">
     <slot></slot>
   </div>
+  <footer>
+    <p>© 2024 UShortLink. All rights reserved.</p>
+  </footer>
 </template>
 
-<style lang="css" scoped>
+<style lang="css">
+:root {
+  --primary-color: #42b983;
+  --secondary-color: #35495e;
+
+  --accent-color-1: #e74c3c;
+}
+
 header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
+  padding: 16px 32px;
   text-align: center;
-  margin-top: 2rem;
-}
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
+  background: var(--primary-color);
+  color: white;
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
+  p {
+    font-size: 20px;
   }
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.content {
+  max-width: 1280px;
+  margin: auto;
+}
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+footer {
+  padding: 8px;
+  color: white;
+  background: var(--secondary-color);
+  text-align: center;
+  font-weight: 500;
 }
 </style>
