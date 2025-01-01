@@ -1,72 +1,141 @@
-<template>
-  <div class="login-container">
-    <h1>Sign Up</h1>
-    <form @submit.prevent="handleSignUp">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" v-model="username" placeholder="Enter your username" required />
-      </div>
+<script lang="ts" setup>
+import router from '@/router'
+import { ref } from 'vue'
 
-      <div class="form-group">
-        <button type="submit" :disabled="isLoading">
-          <span v-if="isLoading">Send code...</span>
-          <span v-else>Sign up</span>
-        </button>
-      </div>
+import FormLayout from './FormLayout.vue'
+import { useToastStore } from '@/stores/toast'
 
-      <div v-if="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-    </form>
+import { apiUrls } from '@/config'
 
-    <p class="signup-link">Already have an account? <router-link to="/login">Login</router-link></p>
-  </div>
-</template>
+const formData = ref({
+  username: '',
+  password: '',
+  confirmPassword: '',
+})
 
-<script lang="ts">
-export default {
-  data() {
-    return {
-      username: '',
-      errorMessage: '',
-      isLoading: false,
-    }
-  },
-  methods: {
-    handleSignUp() {
-      // Reset error message
-      this.errorMessage = ''
+const errorMessage = ref('')
+const isLoading = ref(false)
 
-      // Simple validation: Check if fields are empty
-      if (!this.username) {
-        this.errorMessage = 'Please fill in usernamek.'
-        return
+const MIN_LENGTH = 6
+
+const handleSignUp = () => {
+  // Reset error message
+  errorMessage.value = ''
+
+  const { showToast } = useToastStore()
+
+  // Simple validation: Check if fields are empty
+
+  const username = formData.value.username
+  const password = formData.value.password
+  const confirmPassword = formData.value.confirmPassword
+
+  const regexUsername = /^[a-zA-Z0-9]+$/
+
+  if (username.length < MIN_LENGTH) {
+    errorMessage.value = `Username must at least ${MIN_LENGTH} character`
+    return
+  }
+
+  if (!regexUsername.test(username)) {
+    errorMessage.value = `Username only contain alphabet and number`
+    return
+  }
+
+  if (password.length < MIN_LENGTH) {
+    errorMessage.value = `Password must at least ${MIN_LENGTH} character`
+    return
+  }
+
+  if (password != confirmPassword) {
+    errorMessage.value = `Password and confirm password not match`
+    return
+  }
+
+  // Simulating an API call
+  isLoading.value = true
+
+  const requestBody = {
+    username,
+    password,
+  }
+
+  fetch(apiUrls.signUp, {
+    method: 'POST',
+    body: JSON.stringify(requestBody),
+  })
+    .then(async (response) => {
+      const res = await response.json()
+
+      if (!response.ok) {
+        throw new Error(res.error || response.statusText)
+      } else {
+        showToast('Successful Sign up!')
+        router.push('/login')
       }
-
-      // Simulating an API call
-      this.isLoading = true
-
-      // Mock authentication (Replace this with real authentication logic)
-      setTimeout(() => {
-        this.isLoading = false
-
-        // Mock validation
-        this.$router.push('/login')
-      }, 1000)
-    },
-  },
+    })
+    .catch((err) => {
+      errorMessage.value = err
+    })
+    .finally(() => {
+      isLoading.value = false
+    })
 }
 </script>
 
+<template>
+  <FormLayout>
+    <div class="login-container">
+      <h1>Sign Up</h1>
+      <form @submit.prevent="handleSignUp">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            v-model="formData.username"
+            placeholder="Enter your username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="username" v-model="formData.password" required />
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="username" v-model="formData.confirmPassword" required />
+        </div>
+
+        <div class="form-group">
+          <button type="submit" :disabled="isLoading">
+            <span v-if="isLoading">Send code...</span>
+            <span v-else>Sign up</span>
+          </button>
+        </div>
+
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+      </form>
+
+      <p class="signup-link">
+        Already have an account? <router-link to="/login">Login</router-link>
+      </p>
+    </div>
+  </FormLayout>
+</template>
+
 <style scoped>
 .login-container {
-  width: 100%;
-  max-width: 400px;
+  width: 400px;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--color-background-mute);
 }
 
 h1 {

@@ -28,7 +28,9 @@ const coreValues = [
     </div>
 
     <div class="cta">
-      <button>Get started</button>
+      <RouterLink to="/app">
+        <button>Get started</button>
+      </RouterLink>
     </div>
   </section>
 
@@ -116,7 +118,7 @@ const coreValues = [
     padding: 0 16px;
 
     .card-item {
-      background-color: #f8f9fa;
+      background-color: var(--color-background-soft);
       border-radius: 10px;
       padding: 2rem;
       text-align: center;
@@ -142,6 +144,6 @@ const coreValues = [
 }
 
 .last-section {
-  padding: 16px 0;
+  padding: 32px 0;
 }
 </style>

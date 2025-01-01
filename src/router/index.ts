@@ -7,6 +7,7 @@ import SignUpView from '@/views/SignUpView.vue'
 import AppLayout from '@/views/AppLayout.vue'
 import AppView from '@/views/AppView.vue'
 import LinksView from '@/views/LinksView.vue'
+import { useDataStore } from '@/stores/data'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +38,7 @@ const router = createRouter({
     {
       path: '/app',
       component: AppLayout,
+      meta: { requireAuth: true },
       children: [
         {
           path: '',
@@ -49,6 +51,18 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const dataStore = useDataStore()
+
+  const isAuthenticated = !!dataStore.getToken()
+
+  if (to.meta.requireAuth && !isAuthenticated) {
+    next({ name: 'login' })
+  } else {
+    next()
+  }
 })
 
 export default router
