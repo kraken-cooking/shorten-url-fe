@@ -101,12 +101,17 @@ const handleSignUp = () => {
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="username" v-model="formData.password" required />
+          <input type="password" id="password" v-model="formData.password" required />
         </div>
 
         <div class="form-group">
           <label for="confirm-password">Confirm Password</label>
-          <input type="password" id="username" v-model="formData.confirmPassword" required />
+          <input
+            type="password"
+            id="confirm-password"
+            v-model="formData.confirmPassword"
+            required
+          />
         </div>
 
         <div class="form-group">

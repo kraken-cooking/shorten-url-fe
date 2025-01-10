@@ -8,6 +8,7 @@ import AppLayout from '@/views/AppLayout.vue'
 import AppView from '@/views/AppView.vue'
 import LinksView from '@/views/LinksView.vue'
 import { useDataStore } from '@/stores/data'
+import ShortView from '@/views/ShortView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,13 +37,19 @@ const router = createRouter({
       component: SignUpView,
     },
     {
+      path: '/short/:shortId',
+      name: 'short-redirect',
+      component: ShortView,
+    },
+    {
       path: '/app',
       component: AppLayout,
       meta: { requireAuth: true },
       children: [
         {
           path: '',
-          component: AppView,
+          //component: AppView,
+          component: LinksView,
         },
         {
           path: 'links',

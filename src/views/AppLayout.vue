@@ -9,7 +9,10 @@ import { RouterView } from 'vue-router'
       <h3>LShort</h3>
       <ul>
         <li><router-link to="/app" class="nav-link">Home</router-link></li>
+
+        <!--
         <li><router-link to="/app/links" class="nav-link">Links</router-link></li>
+-->
       </ul>
     </div>
 

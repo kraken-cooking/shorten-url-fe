@@ -4,7 +4,9 @@ import { ref } from 'vue'
 export const useDataStore = defineStore('data', () => {
   const jwtToken = ref(localStorage.getItem('jwtToken') || null)
 
-  const getToken = () => jwtToken.value
+  const getToken = () => {
+    return jwtToken.value
+  }
 
   const setToken = (token: string) => {
     jwtToken.value = token

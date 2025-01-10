@@ -3,6 +3,13 @@ import FormLayout from '@/views/FormLayout.vue'
 
 import router from '@/router'
 import { ref } from 'vue'
+import { apiUrls } from '@/config'
+import { useToastStore } from '@/stores/toast'
+import { useDataStore } from '@/stores/data'
+
+const { showToast } = useToastStore()
+
+const { setToken } = useDataStore()
 
 const formData = ref({
   username: '',
@@ -26,16 +33,36 @@ const handleLogin = () => {
   isLoading.value = true
 
   // Mock authentication (Replace this with real authentication logic)
-  setTimeout(() => {
-    isLoading.value = false
+  isLoading.value = false
 
-    // Mock validation
-    if (formData.value.username === 'user' && formData.value.password === 'password123') {
-      router.push('/app') // Redirect to the App page on successful login
-    } else {
-      errorMessage.value = 'Invalid username or password'
-    }
-  }, 1000)
+  const requestBody = {
+    username: formData.value.username,
+    password: formData.value.password,
+  }
+
+  fetch(apiUrls.login, {
+    method: 'POST',
+    body: JSON.stringify(requestBody),
+  })
+    .then(async (response) => {
+      const res = await response.json()
+
+      if (!response.ok) {
+        throw new Error(res.error || response.statusText)
+      } else {
+        showToast('Successful Login!')
+        const token = res.token
+
+        setToken(token)
+        router.push('/app')
+      }
+    })
+    .catch((err) => {
+      errorMessage.value = err
+    })
+    .finally(() => {
+      isLoading.value = false
+    })
 }
 </script>
 

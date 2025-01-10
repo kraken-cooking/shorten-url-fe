@@ -1,15 +1,27 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { onBeforeMount, ref } from 'vue'
+
 import IconEdit from '@/components/icons/IconEdit.vue'
 import IconDelete from '@/components/icons/IconDelete.vue'
-import { ref } from 'vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+
 import axios from 'axios'
+import { useDataStore } from '@/stores/data'
+import { useModalStore } from '@/stores/modal'
+import { useToastStore } from '@/stores/toast'
+import { useRouter } from 'vue-router'
+import { apiUrls } from '@/config'
 
-const urls = [
-  { longUrl: 'https://longurl1.com', shortUrl: 'https://short.ly/abcd123' },
-  { longUrl: 'https://longurl2.com', shortUrl: 'https://short.ly/xyz456' },
-]
+import apiClient from '@/axios'
+import { config } from '@/config'
 
-const username = 'John Doe'
+const { removeToken, getToken } = useDataStore()
+
+const router = useRouter()
+const modalStore = useModalStore()
+const toast = useToastStore()
+
+const urls = ref([])
 
 const longUrl = ref('')
 const error = ref('')
@@ -18,7 +30,8 @@ const shortenedUrl = ref('')
 const isCreating = ref(false)
 
 const logout = () => {
-  console.log('call logout')
+  removeToken()
+  router.push('/login')
 }
 
 const createShortUrl = async () => {
@@ -30,32 +43,74 @@ const createShortUrl = async () => {
   isCreating.value = true
 
   try {
-    const response = await axios.get(
-      `https://api.shrtco.de/v2/shorten?url=${encodeURIComponent(longUrl.value)}`,
+    const response = await axios.post(
+      apiUrls.links,
+      {
+        original_url: longUrl.value,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      },
     )
 
-    shortenedUrl.value = response.data.result.full_short_link
+    shortenedUrl.value = response.data.shortUrl
   } catch (err) {
     error.value = 'Error shortening URL. Please try again later.'
     console.log(err)
   } finally {
     isCreating.value = false
   }
-
-  console.log('call')
 }
+
+const fetchData = async () => {
+  const response = await apiClient.get(apiUrls.links)
+  const data = response.data
+  urls.value = data
+}
+
+const isDropdownVisible = ref(false)
+
+const toggleDropdown = () => {
+  isDropdownVisible.value = !isDropdownVisible.value
+}
+
+const generateShortLink = (shortId: string) => {
+  return `${config.feUrl}/short/${shortId}`
+}
+
+const handleDelete = (linkId: number) => {
+  modalStore.showModal('Confirm Delete', 'Are you sure you want to delete this item?', () => {
+    apiClient
+      .delete(`${apiUrls.links}/${linkId}`)
+      .then(() => {
+        toast.showToast('Delete link successful!')
+        urls.value = urls.value.filter((item) => item.ID !== linkId)
+      })
+      .catch(() => {
+        toast.showToast('Delete fail!')
+      })
+  })
+}
+
+onBeforeMount(fetchData)
 </script>
 
 <template>
   <div class="app-container">
     <div class="app-header">
       <div class="profile">
-        <img src="@/assets/avatar.png" alt="Profile" class="profile-avatar" />
-        <div class="profile-menu">
-          <span>{{ username }}</span>
-          <ul>
-            <li @click="logout">Logout</li>
-          </ul>
+        <div class="avatar-container" @click="toggleDropdown">
+          <img class="avatar" src="@/assets/avatar.png" alt="User Avatar" />
+
+          <!-- Dropdown menu -->
+          <div v-if="isDropdownVisible" class="dropdown-menu">
+            <!--
+            <a href="/profile" class="dropdown-item">Profile</a>
+-->
+            <button @click="logout" class="dropdown-item">Logout</button>
+          </div>
         </div>
       </div>
     </div>
@@ -107,19 +162,19 @@ const createShortUrl = async () => {
                 </p>
               </td>
               <td class="row-item">
-                <a :href="url.longUrl" target="_blank">{{ url.longUrl }}</a>
+                <a :href="url.originalUrl" target="_blank">{{ url.originalUrl }}</a>
               </td>
               <td class="row-item">
-                <a :href="url.shortUrl" target="_blank">{{ url.shortUrl }}</a>
+                <a :href="generateShortLink(url.shortUrl)" target="_blank">{{ url.shortUrl }}</a>
               </td>
               <td class="row-item">
                 <p>27/01/2024 00:30</p>
               </td>
               <td class="row-item row-action">
-                <button class="action-button">
+                <button class="action-button" disabled>
                   <IconEdit />
                 </button>
-                <button class="action-button">
+                <button class="action-button action-delete" @click="handleDelete(url.ID)">
                   <IconDelete />
                 </button>
               </td>
@@ -130,6 +185,7 @@ const createShortUrl = async () => {
       </section>
     </div>
   </div>
+  <ConfirmModal />
 </template>
 
 <style scoped>
@@ -144,50 +200,6 @@ const createShortUrl = async () => {
   background-color: #42b983;
   color: white;
   border-radius: 8px;
-}
-
-.profile {
-  position: relative;
-  line-height: 0;
-}
-
-.profile-avatar {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  display: none;
-  background-color: white;
-  color: #333;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 150px;
-  padding: 10px;
-}
-
-.profile:hover .profile-menu {
-  display: block;
-}
-
-.profile-menu ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.profile-menu li {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.profile-menu li:hover {
-  background-color: #f1f1f1;
 }
 
 .app-content {
@@ -244,12 +256,62 @@ table {
   text-align: center;
 }
 
-.row-action button {
-  margin-left: 4px;
+.row-action {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
 .action-button {
   padding: 4px;
   line-height: 0;
+}
+
+.avatar-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  object-fit: cover;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 45px; /* Position below the avatar */
+  right: 0;
+  background-color: #fff;
+  color: #333;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 150px;
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1px;
+  cursor: pointer;
+  width: 100%;
+  background: white;
+  border-radius: 0;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.action-delete {
+  background: red;
 }
 </style>
