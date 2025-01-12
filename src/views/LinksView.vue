@@ -56,6 +56,7 @@ const createShortUrl = async () => {
     )
 
     shortenedUrl.value = response.data.shortUrl
+    urls.value = [...urls.value, response.data]
   } catch (err) {
     error.value = 'Error shortening URL. Please try again later.'
     console.log(err)
@@ -122,13 +123,7 @@ onBeforeMount(fetchData)
         <form @submit.prevent="createShortUrl">
           <div class="form-group">
             <label for="long-url">Enter Long URL</label>
-            <input
-              type="url"
-              id="long-url"
-              v-model="longUrl"
-              placeholder="https://example.com"
-              required
-            />
+            <input type="url" id="long-url" v-model="longUrl" placeholder="https://example.com" required />
           </div>
           <button type="submit" :disabled="isCreating">Create Short URL</button>
         </form>
@@ -282,7 +277,8 @@ table {
 
 .dropdown-menu {
   position: absolute;
-  top: 45px; /* Position below the avatar */
+  top: 45px;
+  /* Position below the avatar */
   right: 0;
   background-color: #fff;
   color: #333;
